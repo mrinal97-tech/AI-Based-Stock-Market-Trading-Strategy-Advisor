@@ -1,0 +1,21 @@
+# Virtual Environment
+venv310/
+
+# Trained Models
+models/lstm_model.h5
+models/scaler.pkl
+models/rl_model.keras
+
+# Backtest Results
+backtest_results.csv
+backtest_AAPL.csv
+backtest_MSFT.csv
+backtest_TSLA.csv
+backtest_GOOG.csv
+backtest_TCS_NS.csv
+backtest_INFY_NS.csv
+backtest_WIPRO_NS.csv
+
+# Python Cache
+__pycache__/
+*.pyc
