@@ -11,13 +11,7 @@ from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
 tickers = [
-    "AAPL",
-    "MSFT",
-    "TSLA",
-    "GOOG",
-    "TCS.NS",
-    "INFY.NS",
-    "WIPRO.NS"
+    "NVDA"
 ]
 
 for ticker in tickers:
