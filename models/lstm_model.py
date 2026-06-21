@@ -76,6 +76,9 @@ def predict_return(model, scaler, recent_prices):
     pred_price = scaler.inverse_transform(scaled_pred)[0][0]
 
     last_price = recent_prices[-1]
-    predicted_return = (pred_price - last_price) / last_price
+    if last_price is None or last_price == 0 or np.isnan(last_price):
+        predicted_return = 0.0
+    else:
+        predicted_return = (pred_price - last_price) / (last_price + 1e-9)
 
     return predicted_return
