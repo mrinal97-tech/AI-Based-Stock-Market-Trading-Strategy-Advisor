@@ -21,8 +21,10 @@ def train_ml_pipeline(df):
 
         pred_return = predict_return(model, scaler, recent_prices)
 
-        # Force pure Python float
-        pred_return = float(pred_return)
+        print("TYPE =", type(pred_return))
+        print("VALUE =", pred_return)
+
+        pred_return = float(np.squeeze(pred_return))
 
         predicted_returns.append(pred_return)
 
