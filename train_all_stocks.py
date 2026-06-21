@@ -108,19 +108,13 @@ for ticker in tickers:
     strategy_returns = np.append(strategy_returns, 0.0)
 
     # -----------------------
-    # Save Results
-    # -----------------------
-    save_backtest_results(
-        dates=df.index[:n],
-        prices=df["Close"].values[:n],
-        strategy_returns=strategy_returns
-    )
+# Save Results
+# -----------------------
+save_backtest_results(
+    dates=df.index[:n],
+    prices=df["Close"].values[:n],
+    strategy_returns=strategy_returns,
+    ticker=ticker
+)
 
-    filename = f"/kaggle/working/backtest_{ticker.replace('.', '_')}.csv"
-
-    results_df = pd.read_csv("/kaggle/working/AI-Stock-Project-Collab/backtest_results.csv")
-    results_df.to_csv(filename, index=False)
-
-    print(f"✅ Saved {filename}")
-
-print("\n🎉 ALL STOCKS TRAINED SUCCESSFULLY")
+print(f"✅ Saved {ticker}_backtest.csv")
