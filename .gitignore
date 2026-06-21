@@ -15,6 +15,7 @@ backtest_GOOG.csv
 backtest_TCS_NS.csv
 backtest_INFY_NS.csv
 backtest_WIPRO_NS.csv
+NVDA_backtest.csv
 
 # Python Cache
 __pycache__/
