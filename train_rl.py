@@ -7,43 +7,37 @@ from sklearn.preprocessing import StandardScaler
 from models.dqn_agent import train_dqn_agent
 
 
+def clean(x):
+    x = np.asarray(x, dtype=np.float64).reshape(-1)
+    x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+    return x
+
+
 def train_rl_pipeline(df, predicted_returns, sentiment_scores):
 
     print("🤖 Training RL agent...")
 
     # ---------------------------------------
-    # 1️⃣ Align lengths
+    # Align lengths
     # ---------------------------------------
-    min_len = min(
-        len(df),
-        len(predicted_returns),
-        len(sentiment_scores)
-    )
+    min_len = min(len(df), len(predicted_returns), len(sentiment_scores))
 
-    df = df.tail(min_len)
+    df = df.tail(min_len).reset_index(drop=True)
 
-    predicted_returns = predicted_returns[-min_len:]
-    sentiment_scores = sentiment_scores[-min_len:]
+    predicted_returns = clean(predicted_returns)[-min_len:]
+    sentiment_scores = clean(sentiment_scores)[-min_len:]
 
     # ---------------------------------------
-    # 2️⃣ Extract features
+    # Extract features
     # ---------------------------------------
-    prices = df['Close'].values
-    volumes = df['Volume'].values
-    sma50 = df['Close'].rolling(50).mean().bfill().values
-    sma200 = df['Close'].rolling(200).mean().bfill().values
+    prices = clean(df["Close"].values)
+    volumes = clean(df["Volume"].values)
+
+    sma50 = clean(df["Close"].rolling(50).mean().bfill().values)
+    sma200 = clean(df["Close"].rolling(200).mean().bfill().values)
 
     # ---------------------------------------
-    # 3️⃣ FORCE CLEAN 1D FLOAT ARRAYS
-    # ---------------------------------------
-    predicted_returns = np.asarray(predicted_returns).reshape(-1).astype(float)
-    sentiment_scores = np.asarray(sentiment_scores).reshape(-1).astype(float)
-    volumes = np.asarray(volumes).reshape(-1).astype(float)
-    sma50 = np.asarray(sma50).reshape(-1).astype(float)
-    sma200 = np.asarray(sma200).reshape(-1).astype(float)
-
-    # ---------------------------------------
-    # 4️⃣ STACK FEATURES SAFELY
+    # STACK FEATURES
     # ---------------------------------------
     features_matrix = np.column_stack((
         predicted_returns,
@@ -54,7 +48,13 @@ def train_rl_pipeline(df, predicted_returns, sentiment_scores):
     ))
 
     # ---------------------------------------
-    # 5️⃣ Normalize
+    # HARD SAFETY CHECK (IMPORTANT)
+    # ---------------------------------------
+    features_matrix = np.nan_to_num(features_matrix, nan=0.0, posinf=0.0, neginf=0.0)
+    features_matrix = np.clip(features_matrix, -1e6, 1e6)
+
+    # ---------------------------------------
+    #  Normalize
     # ---------------------------------------
     scaler = StandardScaler()
     features_matrix = scaler.fit_transform(features_matrix)
@@ -66,7 +66,7 @@ def train_rl_pipeline(df, predicted_returns, sentiment_scores):
     sma200 = features_matrix[:, 4]
 
     # ---------------------------------------
-    # 6️⃣ Train DQN
+    # Train DQN
     # ---------------------------------------
     agent = train_dqn_agent(
         prices=prices,
@@ -75,7 +75,7 @@ def train_rl_pipeline(df, predicted_returns, sentiment_scores):
         volumes=volumes,
         sma50=sma50,
         sma200=sma200,
-        episodes=15,   # keep moderate for Kaggle
+        episodes=15,
         save_path="models/rl_model.keras"
     )
 
