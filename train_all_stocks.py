@@ -1,18 +1,16 @@
 # train_all_stocks.py
 
-# train_all_stocks.py
-
 import yfinance as yf
 import pandas as pd
 import numpy as np
+
 from train_ml import train_ml_pipeline
 from train_rl import train_rl_pipeline
 from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
-tickers = [
-    "NVDA"
-]
+
+tickers = ["NVDA"]
 
 for ticker in tickers:
 
@@ -20,6 +18,9 @@ for ticker in tickers:
     print(f"🚀 Training for {ticker}")
     print("==============================")
 
+    # -----------------------
+    # Download data
+    # -----------------------
     df = yf.download(ticker, period="2y")
 
     if df.empty:
@@ -29,11 +30,11 @@ for ticker in tickers:
     df = df.reset_index()
 
     # -----------------------
-    # ML Training
+    # ML Training (LSTM)
     # -----------------------
     lstm_model, scaler, predicted_returns = train_ml_pipeline(df)
 
-    # Already clean 1D from train_ml.py
+    predicted_returns = np.array(predicted_returns).reshape(-1)
 
     # -----------------------
     # NLP Sentiment
@@ -45,51 +46,76 @@ for ticker in tickers:
 
     headlines = headlines[:len(df)]
 
-    sentiment_scores = get_batch_sentiment(headlines)
-    sentiment_scores = np.array(sentiment_scores).astype(float)
+    sentiment_scores = np.array(get_batch_sentiment(headlines), dtype=float).reshape(-1)
+
+    # -----------------------
+    # Feature Engineering (SAFE)
+    # -----------------------
+    volumes = df["Volume"].to_numpy().reshape(-1).astype(float)
+
+    sma50 = (
+        df["Close"]
+        .rolling(50)
+        .mean()
+        .bfill()
+        .to_numpy()
+        .reshape(-1)
+        .astype(float)
+    )
+
+    sma200 = (
+        df["Close"]
+        .rolling(200)
+        .mean()
+        .bfill()
+        .to_numpy()
+        .reshape(-1)
+        .astype(float)
+    )
+
+    # -----------------------
+    # Align all lengths safely
+    # -----------------------
+    n = min(
+        len(predicted_returns),
+        len(sentiment_scores),
+        len(volumes),
+        len(sma50),
+        len(sma200)
+    )
+
+    features = np.column_stack([
+        predicted_returns[:n],
+        sentiment_scores[:n],
+        volumes[:n],
+        sma50[:n],
+        sma200[:n]
+    ]).astype(float)
 
     # -----------------------
     # RL Training
     # -----------------------
-    agent = train_rl_pipeline(df, predicted_returns, sentiment_scores)
-
-    # ---------------------------------------
-    #  5️⃣ Feature Creation (FORCE CLEAN FLOATS)
-    # ---------------------------------------
-
-    volumes = df['Volume'].values.astype(float)
-    sma50 = df['Close'].rolling(50).mean().bfill().values.astype(float)
-    sma200 = df['Close'].rolling(200).mean().bfill().values.astype(float)
-
-    features = []
-
-    for i in range(len(predicted_returns)):
-        features.append((
-        float(predicted_returns[i]),
-        float(sentiment_scores[i]),
-        float(volumes[i]),
-        float(sma50[i]),
-        float(sma200[i])
-    ))
+    agent = train_rl_pipeline(df.iloc[:n], predicted_returns[:n], sentiment_scores[:n])
 
     # -----------------------
     # Backtest
     # -----------------------
-    equity = backtest(agent, df['Close'].values, features)
+    equity = backtest(agent, df["Close"].values[:n], features)
 
-    strategy_returns = np.diff(equity) / equity[:-1]
-    strategy_returns = np.append(strategy_returns, 0)
+    equity = np.array(equity, dtype=float)
+
+    strategy_returns = np.diff(equity) / (equity[:-1] + 1e-9)
+    strategy_returns = np.append(strategy_returns, 0.0)
 
     # -----------------------
     # Save Results
     # -----------------------
     save_backtest_results(
-    dates=df.index,
-    prices=df["Close"].values,
-    strategy_returns=strategy_returns
-)
+        dates=df.index[:n],
+        prices=df["Close"].values[:n],
+        strategy_returns=strategy_returns
+    )
 
-    # Save uniquely for each stock
     filename = f"/kaggle/working/backtest_{ticker.replace('.', '_')}.csv"
 
     results_df = pd.read_csv("/kaggle/working/AI-Stock-Project-Collab/backtest_results.csv")
