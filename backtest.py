@@ -37,10 +37,16 @@ def backtest(agent, prices, features):
 # -----------------------------------
 # SAVE RESULTS FUNCTION
 # -----------------------------------
-def save_backtest_results(dates, prices, strategy_returns):
+def save_backtest_results(dates, prices, strategy_returns, ticker):
 
-    prices = np.asarray(prices).reshape(-1).astype(float)
-    strategy_returns = np.asarray(strategy_returns).reshape(-1).astype(float)
+    import pandas as pd
+    import numpy as np
+
+    prices = np.asarray(prices, dtype=np.float64).reshape(-1)
+    strategy_returns = np.asarray(strategy_returns, dtype=np.float64).reshape(-1)
+
+    prices = np.nan_to_num(prices, nan=0.0, posinf=0.0, neginf=0.0)
+    strategy_returns = np.nan_to_num(strategy_returns, nan=0.0, posinf=0.0, neginf=0.0)
 
     equity_curve = (1 + strategy_returns).cumprod()
 
@@ -48,16 +54,21 @@ def save_backtest_results(dates, prices, strategy_returns):
     max_drawdown = (equity_curve / np.maximum.accumulate(equity_curve) - 1).min()
     total_return = equity_curve[-1] - 1
 
+    min_len = min(len(dates), len(prices), len(equity_curve))
+
     results_df = pd.DataFrame({
-        "Date": dates,
-        "Close": prices,
-        "Strategy_Equity": equity_curve
+        "Date": dates[:min_len],
+        "Close": prices[:min_len],
+        "Strategy_Equity": equity_curve[:min_len]
     })
 
     results_df["Sharpe"] = sharpe
     results_df["Max_Drawdown"] = max_drawdown
     results_df["Total_Return"] = total_return
 
-    results_df.to_csv("backtest_results.csv", index=False)
+    output_path = f"{ticker}_backtest.csv"
+    results_df.to_csv(output_path, index=False)
 
-    print("✅ Backtest results saved as backtest_results.csv")
+    print(f"✅ Backtest saved: {output_path}")
+
+    return output_path
