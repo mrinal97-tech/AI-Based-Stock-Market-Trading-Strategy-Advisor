@@ -13,25 +13,26 @@ def train_ml_pipeline(df):
     look_back = 60
     predicted_returns = []
 
-    prices = df['Close'].values.astype(float)
+    prices = df['Close'].values.astype(float).reshape(-1, 1)
 
-    for i in range(look_back, len(prices)):
+    # IMPORTANT: scale entire series once
+    scaled_prices = scaler.transform(prices)
 
-        recent_prices = prices[i-look_back:i]
+    for i in range(look_back, len(scaled_prices)):
 
-        pred_return = predict_return(model, scaler, recent_prices)
+        recent_window = scaled_prices[i - look_back:i]
 
-        print("TYPE =", type(pred_return))
-        print("VALUE =", pred_return)
+        # shape: (60, 1)
+        pred_return = predict_return(model, scaler, recent_window)
 
-        pred_return = float(np.squeeze(pred_return))
+        # SAFE conversion
+        pred_return = float(np.array(pred_return).reshape(-1)[0])
 
         predicted_returns.append(pred_return)
 
-    # Pad beginning with floats (NOT ints)
-    predicted_returns = [0.0 for _ in range(look_back)] + predicted_returns
+    # pad start
+    predicted_returns = [0.0] * look_back + predicted_returns
 
-    # 🔥 CRITICAL: force strict float64 numpy array
     predicted_returns = np.array(predicted_returns, dtype=np.float64)
 
     return model, scaler, predicted_returns
