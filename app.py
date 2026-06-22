@@ -34,7 +34,8 @@ if analyze_button and ticker:
         "TCS.NS": "backtest_TCS_NS.csv",
         "INFY.NS": "backtest_INFY_NS.csv",
         "WIPRO.NS": "backtest_WIPRO_NS.csv",
-        "NVDA": "NVDA_backtest.csv"
+        "NVDA": "NVDA_backtest.csv",
+        "RELIANCE.NS":"RELIANCE.NS_backtest.csv"
     }
 
     if ticker not in file_map:
