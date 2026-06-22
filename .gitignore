@@ -16,6 +16,7 @@ backtest_TCS_NS.csv
 backtest_INFY_NS.csv
 backtest_WIPRO_NS.csv
 NVDA_backtest.csv
+RELIANCE.NS_backtest.csv
 
 # Python Cache
 __pycache__/
