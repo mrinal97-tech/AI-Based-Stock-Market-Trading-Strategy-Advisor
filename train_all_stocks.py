@@ -10,11 +10,7 @@ from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
 
-tickers = ["AMZN",
-"META",
-"NFLX",
-"AMD",
-"INTC"]
+tickers = ["AMZN"]
 
 for ticker in tickers:
 
@@ -112,13 +108,13 @@ for ticker in tickers:
     strategy_returns = np.append(strategy_returns, 0.0)
 
     # -----------------------
-# Save Results
-# -----------------------
-save_backtest_results(
-    dates=df.index[:n],
-    prices=df["Close"].values[:n],
-    strategy_returns=strategy_returns,
-    ticker=ticker
-)
+    # Save Results
+    # -----------------------
+    save_backtest_results(
+        dates=df.index[:n],
+        prices=df["Close"].values[:n],
+        strategy_returns=strategy_returns,
+        ticker=ticker
+    )
 
-print(f"✅ Saved {ticker}_backtest.csv")
+    print(f"✅ Saved {ticker}_backtest.csv")
