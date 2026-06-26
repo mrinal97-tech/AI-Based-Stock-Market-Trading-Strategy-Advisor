@@ -10,7 +10,7 @@ from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
 
-tickers = ["INTC"]
+tickers = ["JPM"]
 
 for ticker in tickers:
 
