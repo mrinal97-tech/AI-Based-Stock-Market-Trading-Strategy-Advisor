@@ -11,7 +11,7 @@ from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
 
-tickers = ["V",
+tickers = [
 "WMT",
 "KO",
 "XOM",
