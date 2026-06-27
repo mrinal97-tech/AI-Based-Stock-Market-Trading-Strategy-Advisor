@@ -3,6 +3,7 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import os 
 
 from train_ml import train_ml_pipeline
 from train_rl import train_rl_pipeline
@@ -10,7 +11,26 @@ from backtest import backtest, save_backtest_results
 from models.nlp_model import get_batch_sentiment
 
 
-tickers = ["JPM"]
+tickers = ["V",
+"WMT",
+"KO",
+"XOM",
+"HDFCBANK.NS",
+"ICICIBANK.NS",
+"SBIN.NS",
+"LT.NS",
+"BHARTIARTL.NS",
+"HINDUNILVR.NS",
+"ITC.NS",
+"GC=F",      # Gold Futures
+"SI=F",    # Silver
+"CL=F",     # WTI Crude Oil
+"NG=F", 
+"^GSPC",
+"^IXIC",
+"^DJI",
+"^NSEI",
+"^BSESN"]
 
 for ticker in tickers:
 
@@ -110,11 +130,21 @@ for ticker in tickers:
     # -----------------------
     # Save Results
     # -----------------------
-    save_backtest_results(
-        dates=df.index[:n],
+    print("=" * 60)
+    print("Ticker:", ticker)
+    print("Current Working Directory:", os.getcwd())
+
+    path = save_backtest_results(
+        dates=df["Date"][:n],          # use Date, not index
         prices=df["Close"].values[:n],
         strategy_returns=strategy_returns,
         ticker=ticker
-    )
+)
 
-    print(f"✅ Saved {ticker}_backtest.csv")
+    print("Returned path:", path)
+    print("Absolute path:", os.path.abspath(path))
+    print("File exists:", os.path.exists(path))
+
+    print("CSV files currently present:")
+    print([f for f in os.listdir(os.getcwd()) if f.endswith(".csv")])
+    print("=" * 60)
