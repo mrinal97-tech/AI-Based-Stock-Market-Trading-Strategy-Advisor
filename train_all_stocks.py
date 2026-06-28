@@ -12,8 +12,42 @@ from models.nlp_model import get_batch_sentiment
 
 
 tickers = [
-"USDINR",
-"EURUSD"]
+    "AAPL",
+    "MSFT",
+    "GOOG",
+    "TSLA",
+    "NVDA",
+    "AMZN",
+    "META",
+    "NFLX",
+    "AMD",
+    "INTC",
+    "JPM",
+    "KO",
+    "V",
+    "WMT",
+    "XOM",
+
+    # Indian Stocks
+    "TCS.NS",
+    "INFY.NS",
+    "WIPRO.NS",
+    "RELIANCE.NS",
+    "HDFCBANK.NS",
+    "HINDUNILVR.NS",
+
+    # Commodities
+    "GC=F",
+    "SI=F",
+    "CL=F",
+    "NG=F",
+
+    # Indices
+    "^GSPC",
+    "^IXIC",
+    "^NSEI",
+    "^BSESN"
+]
 
 for ticker in tickers:
 
