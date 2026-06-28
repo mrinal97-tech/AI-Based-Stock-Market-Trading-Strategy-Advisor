@@ -12,23 +12,6 @@ from models.nlp_model import get_batch_sentiment
 
 
 tickers = [
-"WMT",
-"KO",
-"XOM",
-"HDFCBANK.NS",
-"ICICIBANK.NS",
-"SBIN.NS",
-"LT.NS",
-"BHARTIARTL.NS",
-"HINDUNILVR.NS",
-"ITC.NS",
-"GC=F",      # Gold Futures
-"SI=F",    # Silver
-"CL=F",     # WTI Crude Oil
-"NG=F", 
-"^GSPC",
-"^IXIC",
-"^DJI",
 "^NSEI",
 "^BSESN"]
 
