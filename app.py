@@ -27,15 +27,43 @@ if analyze_button and ticker:
     ticker = ticker.upper()
 
     file_map = {
-        "AAPL": "backtest_AAPL.csv",
-        "MSFT": "backtest_MSFT.csv",
-        "TSLA": "backtest_TSLA.csv",
-        "GOOG": "backtest_GOOG.csv",
-        "TCS.NS": "backtest_TCS_NS.csv",
-        "INFY.NS": "backtest_INFY_NS.csv",
-        "WIPRO.NS": "backtest_WIPRO_NS.csv",
-        "NVDA": "NVDA_backtest.csv",
-        "RELIANCE.NS":"RELIANCE.NS_backtest.csv"
+    # US Stocks
+    "AAPL": "Stock Data/US Stocks/backtest_AAPL.csv",
+    "MSFT": "Stock Data/US Stocks/backtest_MSFT.csv",
+    "GOOG": "Stock Data/US Stocks/backtest_GOOG.csv",
+    "TSLA": "Stock Data/US Stocks/backtest_TSLA.csv",
+    "NVDA": "Stock Data/US Stocks/NVDA_backtest.csv",
+    "AMZN": "Stock Data/US Stocks/AMZN_backtest.csv",
+    "META": "Stock Data/US Stocks/META_backtest.csv",
+    "NFLX": "Stock Data/US Stocks/NFLX_backtest.csv",
+    "AMD": "Stock Data/US Stocks/AMD_backtest.csv",
+    "INTC": "Stock Data/US Stocks/INTC_backtest.csv",
+    "JPM": "Stock Data/US Stocks/JPM_backtest.csv",
+    "KO": "Stock Data/US Stocks/KO_backtest.csv",
+    "V": "Stock Data/US Stocks/V_backtest.csv",
+    "WMT": "Stock Data/US Stocks/WMT_backtest.csv",
+    "XOM": "Stock Data/US Stocks/XOM_backtest.csv",
+
+    # Indian Stocks
+    "TCS.NS": "Stock Data/Indian Stocks/backtest_TCS_NS.csv",
+    "INFY.NS": "Stock Data/Indian Stocks/backtest_INFY_NS.csv",
+    "WIPRO.NS": "Stock Data/Indian Stocks/backtest_WIPRO_NS.csv",
+    "RELIANCE.NS": "Stock Data/Indian Stocks/RELIANCE.NS_backtest.csv",
+    "HDFCBANK.NS": "Stock Data/Indian Stocks/HDFCBANK.NS_backtest.csv",
+    "HINDUNILVR.NS": "Stock Data/Indian Stocks/HINDUNILVR.NS_backtest.csv",
+
+    # Commodities
+    "GC=F": "Stock Data/commodities/GC=F_backtest.csv",
+    "SI=F": "Stock Data/commodities/SI=F_backtest.csv",
+    "CL=F": "Stock Data/commodities/CL=F_backtest.csv",
+    "NG=F": "Stock Data/commodities/NG=F_backtest.csv",
+
+    # Indices
+    "^GSPC": "Stock Data/indices/GSPC_backtest.csv",
+    "^IXIC": "Stock Data/indices/IXIC_backtest.csv",
+    "^NSEI": "Stock Data/indices/NSEI_backtest.csv",
+    "^BSESN": "Stock Data/indices/BSESN_backtest.csv",
+
     }
 
     if ticker not in file_map:
