@@ -12,8 +12,8 @@ from models.nlp_model import get_batch_sentiment
 
 
 tickers = [
-"^NSEI",
-"^BSESN"]
+"USDINR",
+"EURUSD"]
 
 for ticker in tickers:
 

@@ -7,16 +7,8 @@ models/scaler.pkl
 models/rl_model.keras
 
 # Backtest Results
-backtest_results.csv
-backtest_AAPL.csv
-backtest_MSFT.csv
-backtest_TSLA.csv
-backtest_GOOG.csv
-backtest_TCS_NS.csv
-backtest_INFY_NS.csv
-backtest_WIPRO_NS.csv
-NVDA_backtest.csv
-RELIANCE.NS_backtest.csv
+# Ignore all stock data
+Stock Data/
 
 # Python Cache
 __pycache__/
