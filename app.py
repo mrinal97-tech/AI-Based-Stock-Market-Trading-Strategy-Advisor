@@ -9,8 +9,54 @@ st.set_page_config(layout="wide")
 st.title("📊 AI-Based Stock Market Strategy Advisor")
 
 # -----------------------------------
+# CACHED FUNCTIONS
+# -----------------------------------
+
+@st.cache_data
+def load_backtest_data(file_path):
+    return pd.read_csv(file_path)
+
+@st.cache_data(ttl=300)
+def get_current_price(ticker):
+    stock_data = yf.download(ticker, period="5d", progress=False)
+    if not stock_data.empty:
+        return float(stock_data["Close"].dropna().iloc[-1])
+    return 0.0
+
+@st.cache_data(ttl=3600)
+def get_news_headlines(ticker):
+    ticker_obj = yf.Ticker(ticker)
+    headlines = []
+
+    try:
+        news = ticker_obj.news
+        if news:
+            for item in news[:8]:
+                if isinstance(item, dict):
+                    if "title" in item:
+                        headlines.append(item["title"])
+                    elif "content" in item and isinstance(item["content"], dict):
+                        if "title" in item["content"]:
+                            headlines.append(item["content"]["title"])
+    except Exception:
+        pass
+
+    if len(headlines) == 0:
+        headlines = [
+            f"Market outlook discussion about {ticker}",
+            f"Investor sentiment analysis for {ticker}"
+        ]
+
+    return headlines
+
+@st.cache_data(ttl=3600)
+def get_cached_sentiment(headlines):
+    return get_batch_sentiment(headlines)
+
+# -----------------------------------
 # USER INPUT
 # -----------------------------------
+
 st.sidebar.header("🔍 Analyze Stock")
 
 ticker = st.sidebar.text_input("Enter Stock Ticker (Example: AAPL / TCS.NS)")
@@ -22,108 +68,67 @@ if not analyze_button:
 # -----------------------------------
 # RUN ONLY AFTER CLICK
 # -----------------------------------
+
 if analyze_button and ticker:
 
     ticker = ticker.upper()
 
     file_map = {
-    # US Stocks
-    "AAPL": "Stock Data/US Stocks/backtest_AAPL.csv",
-    "MSFT": "Stock Data/US Stocks/backtest_MSFT.csv",
-    "GOOG": "Stock Data/US Stocks/backtest_GOOG.csv",
-    "TSLA": "Stock Data/US Stocks/backtest_TSLA.csv",
-    "NVDA": "Stock Data/US Stocks/NVDA_backtest.csv",
-    "AMZN": "Stock Data/US Stocks/AMZN_backtest.csv",
-    "META": "Stock Data/US Stocks/META_backtest.csv",
-    "NFLX": "Stock Data/US Stocks/NFLX_backtest.csv",
-    "AMD": "Stock Data/US Stocks/AMD_backtest.csv",
-    "INTC": "Stock Data/US Stocks/INTC_backtest.csv",
-    "JPM": "Stock Data/US Stocks/JPM_backtest.csv",
-    "KO": "Stock Data/US Stocks/KO_backtest.csv",
-    "V": "Stock Data/US Stocks/V_backtest.csv",
-    "WMT": "Stock Data/US Stocks/WMT_backtest.csv",
-    "XOM": "Stock Data/US Stocks/XOM_backtest.csv",
+        # US Stocks
+        "AAPL": "Stock Data/US Stocks/backtest_AAPL.csv",
+        "MSFT": "Stock Data/US Stocks/backtest_MSFT.csv",
+        "GOOG": "Stock Data/US Stocks/backtest_GOOG.csv",
+        "TSLA": "Stock Data/US Stocks/backtest_TSLA.csv",
+        "NVDA": "Stock Data/US Stocks/NVDA_backtest.csv",
+        "AMZN": "Stock Data/US Stocks/AMZN_backtest.csv",
+        "META": "Stock Data/US Stocks/META_backtest.csv",
+        "NFLX": "Stock Data/US Stocks/NFLX_backtest.csv",
+        "AMD": "Stock Data/US Stocks/AMD_backtest.csv",
+        "INTC": "Stock Data/US Stocks/INTC_backtest.csv",
+        "JPM": "Stock Data/US Stocks/JPM_backtest.csv",
+        "KO": "Stock Data/US Stocks/KO_backtest.csv",
+        "V": "Stock Data/US Stocks/V_backtest.csv",
+        "WMT": "Stock Data/US Stocks/WMT_backtest.csv",
+        "XOM": "Stock Data/US Stocks/XOM_backtest.csv",
 
-    # Indian Stocks
-    "TCS.NS": "Stock Data/Indian Stocks/backtest_TCS_NS.csv",
-    "INFY.NS": "Stock Data/Indian Stocks/backtest_INFY_NS.csv",
-    "WIPRO.NS": "Stock Data/Indian Stocks/backtest_WIPRO_NS.csv",
-    "RELIANCE.NS": "Stock Data/Indian Stocks/RELIANCE.NS_backtest.csv",
-    "HDFCBANK.NS": "Stock Data/Indian Stocks/HDFCBANK.NS_backtest.csv",
-    "HINDUNILVR.NS": "Stock Data/Indian Stocks/HINDUNILVR.NS_backtest.csv",
+        # Indian Stocks
+        "TCS.NS": "Stock Data/Indian Stocks/backtest_TCS_NS.csv",
+        "INFY.NS": "Stock Data/Indian Stocks/backtest_INFY_NS.csv",
+        "WIPRO.NS": "Stock Data/Indian Stocks/backtest_WIPRO_NS.csv",
+        "RELIANCE.NS": "Stock Data/Indian Stocks/RELIANCE.NS_backtest.csv",
+        "HDFCBANK.NS": "Stock Data/Indian Stocks/HDFCBANK.NS_backtest.csv",
+        "HINDUNILVR.NS": "Stock Data/Indian Stocks/HINDUNILVR.NS_backtest.csv",
 
-    # Commodities
-    "GC=F": "Stock Data/commodities/GC=F_backtest.csv",
-    "SI=F": "Stock Data/commodities/SI=F_backtest.csv",
-    "CL=F": "Stock Data/commodities/CL=F_backtest.csv",
-    "NG=F": "Stock Data/commodities/NG=F_backtest.csv",
+        # Commodities
+        "GC=F": "Stock Data/commodities/GC=F_backtest.csv",
+        "SI=F": "Stock Data/commodities/SI=F_backtest.csv",
+        "CL=F": "Stock Data/commodities/CL=F_backtest.csv",
+        "NG=F": "Stock Data/commodities/NG=F_backtest.csv",
 
-    # Indices
-    "^GSPC": "Stock Data/indices/GSPC_backtest.csv",
-    "^IXIC": "Stock Data/indices/IXIC_backtest.csv",
-    "^NSEI": "Stock Data/indices/NSEI_backtest.csv",
-    "^BSESN": "Stock Data/indices/BSESN_backtest.csv",
-
+        # Indices
+        "^GSPC": "Stock Data/indices/GSPC_backtest.csv",
+        "^IXIC": "Stock Data/indices/IXIC_backtest.csv",
+        "^NSEI": "Stock Data/indices/NSEI_backtest.csv",
+        "^BSESN": "Stock Data/indices/BSESN_backtest.csv",
     }
 
     if ticker not in file_map:
         st.error("⚠ Backtest data not available for this ticker")
         st.stop()
 
-    df = pd.read_csv(file_map[ticker])
+    df = load_backtest_data(file_map[ticker])
 
-    # -----------------------------------
-    # CURRENCY HANDLING
-    # -----------------------------------
     if ticker.endswith(".NS"):
         currency_symbol = "₹"
     else:
         currency_symbol = "$"
 
-    # -----------------------------------
-    # CURRENT PRICE
-    # -----------------------------------
-    stock_data = yf.download(ticker, period="5d", progress=False)
+    current_price = get_current_price(ticker)
 
-    if not stock_data.empty:
-        current_price = float(stock_data["Close"].dropna().iloc[-1])
-    else:
-        current_price = 0.0
-
-    # -----------------------------------
-    # PREDICTED PRICE
-    # -----------------------------------
     predicted_price = current_price * (1 + df["Total_Return"].iloc[0] * 0.01)
 
-    # -----------------------------------
-    # REAL NEWS SENTIMENT
-    # -----------------------------------
-    ticker_obj = yf.Ticker(ticker)
-    headlines = []
-
-    try:
-        news = ticker_obj.news
-
-        if news:
-            for item in news[:8]:
-                if isinstance(item, dict):
-                    if "title" in item:
-                        headlines.append(item["title"])
-                    elif "content" in item and isinstance(item["content"], dict):
-                        if "title" in item["content"]:
-                            headlines.append(item["content"]["title"])
-
-    except Exception:
-        pass
-
-    # fallback
-    if len(headlines) == 0:
-        headlines = [
-            f"Market outlook discussion about {ticker}",
-            f"Investor sentiment analysis for {ticker}"
-        ]
-
-    sentiment_scores = get_batch_sentiment(headlines)
+    headlines = get_news_headlines(ticker)
+    sentiment_scores = get_cached_sentiment(tuple(headlines))
 
     avg_sentiment = float(np.mean(sentiment_scores))
 
@@ -138,9 +143,6 @@ if analyze_button and ticker:
     else:
         sentiment_label = "Neutral"
 
-    # -----------------------------------
-    # HYBRID DECISION
-    # -----------------------------------
     if predicted_price > current_price and avg_sentiment > 0:
         strategy_decision = "BUY"
     elif predicted_price < current_price and avg_sentiment < 0:
@@ -148,9 +150,6 @@ if analyze_button and ticker:
     else:
         strategy_decision = "HOLD"
 
-    # -----------------------------------
-    # TOP METRICS
-    # -----------------------------------
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("Current Price", f"{currency_symbol}{current_price:.2f}")
@@ -160,36 +159,27 @@ if analyze_button and ticker:
 
     st.divider()
 
-    # -----------------------------------
-    # EQUITY CURVE
-    # -----------------------------------
     st.subheader("📈 Strategy Equity Curve")
 
-    fig1 = plt.figure(figsize=(8,4))
+    fig1 = plt.figure(figsize=(8, 4))
     plt.plot(df["Strategy_Equity"])
     plt.title("AI Strategy Equity Curve")
     plt.xlabel("Time")
     plt.ylabel("Equity")
     st.pyplot(fig1)
 
-    # -----------------------------------
-    # BUY & HOLD
-    # -----------------------------------
     st.subheader("📊 Buy & Hold Comparison")
 
     prices = df["Close"]
     buy_hold = prices / prices.iloc[0]
 
-    fig2 = plt.figure(figsize=(8,4))
+    fig2 = plt.figure(figsize=(8, 4))
     plt.plot(df["Strategy_Equity"], label="AI Strategy")
     plt.plot(buy_hold, label="Buy & Hold")
     plt.legend()
     plt.title("AI Strategy vs Buy & Hold")
     st.pyplot(fig2)
 
-    # -----------------------------------
-    # PERFORMANCE METRICS
-    # -----------------------------------
     st.subheader("📋 Performance Metrics")
 
     metric_df = pd.DataFrame({
@@ -203,9 +193,6 @@ if analyze_button and ticker:
 
     st.table(metric_df)
 
-    # -----------------------------------
-    # SENTIMENT BREAKDOWN
-    # -----------------------------------
     st.subheader("📰 Sentiment Breakdown")
 
     sentiment_df = pd.DataFrame({
